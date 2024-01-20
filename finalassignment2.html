@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assignment 2 by bhanu</title>
+    <style>
+      #accessingdata {
+        width: fit-content;
+      }
+      #linetop {
+        width: fit-content;
+      }
+      .shortline {
+        width: 100%;
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+      .healthclass {
+        width: 100%;
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <button onclick="fetchdata(getAllcat)">All name</button> <br />
+    <br />
+
+    <button onclick=" fetchdata(displayHealthIssue)">Health issue</button>
+    <input
+      type="text"
+      id="healthIssue"
+      placeholder="enter the number"
+    /><br /><br />
+    <input
+      onclick="checkOnChange('getImperialWeight')"
+      type="radio"
+      id="getImperialWeight"
+      name="onegroup1"
+      checked
+    />
+    <label for="getImperialWeight">Imperial weight</label>
+    <input
+      onclick="checkOnChange('weightInMetric')"
+      type="radio"
+      id="weightInMetric"
+      name="onegroup1"
+    />
+    <label for="weightInMetric">Metric weight</label>
+    <button onclick="fetchdata(getWeight)">Weight</button> <br />
+    <br />
+    <button onclick="fetchdata(intelligenceFriendly)">
+      Intelligence-Friendly
+    </button>
+    <br />
+    <br />
+    <button onclick="fetchdata(averageIntelligence)">
+      Average Intelligence
+    </button>
+    <br />
+    <br />
+    <button onclick="fetchdata(averageIntelligenceForChildFriendly)">
+      Average Intelligence for Child Friendly=4
+    </button>
+    <br />
+    <br />
+    <p id="errorissue"></p>
+    <div id="linetop"><p id="hwomanycats"></p></div>
+    <div id="accessingdata"></div>
+    <div id="catsName"></div>
+
+    <script>
+      elementOfdv = document.getElementById("accessingdata");
+      error = document.getElementById("errorissue");
+      var selectedWeightUnit = "Imperial";
+
+      function checkOnChange(id) {
+        if (id === "getImperialWeight") {
+          selectedWeightUnit = "Imperial";
+        } else if (id === "weightInMetric") {
+          selectedWeightUnit = "Metric";
+        }
+      }
+      function fetchdata(callback) {
+        var elementOfdv = document.getElementById("accessingdata");
+        elementOfdv.innerHTML = "";
+        var error = document.getElementById("errorissue");
+        error.innerHTML = "";
+
+        var given_url = "https://api.thecatapi.com/v1/breeds";
+
+        fetch(given_url)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Something went wrong.");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            callback(data);
+          })
+          .catch((error) => {
+            console.error("Error fetching JSON:", error);
+          });
+      }
+
+      function displayHealthIssue(data) {
+        healthIssue = document.getElementById("healthIssue").value;
+
+        if (isNaN(healthIssue) || healthIssue === "") {
+          error.innerHTML = "Please enter a valid number";
+          return;
+        }
+        var catsCount = 0;
+
+        var healthIssueCount = 0;
+
+        var htmlcontent =
+          "<p> Health issue for " +
+          healthIssue +
+          '</p><hr class="healthclass">';
+        Object.values(data).forEach((value) => {
+          if (value.health_issues == parseInt(healthIssue)) {
+            fetchedData = value.name;
+            htmlcontent += "<p>" + fetchedData + "</P>";
+            healthIssueCount++;
+          }
+        });
+        htmlcontent +=
+          '<hr class="healthissue"><p>total=' + healthIssueCount + "</p>";
+        elementOfdv.innerHTML = htmlcontent;
+        document.getElementById("healthIssue").value = "";
+      }
+
+      function getWeight(data) {
+        var htmlcontent =
+          "<p> Weight in " +
+          selectedWeightUnit +
+          '</p><hr class="healthclass">';
+
+        Object.values(data).forEach((value) => {
+          if (selectedWeightUnit == "Metric") {
+            weight = value.weight.metric;
+          } else if (selectedWeightUnit == "Imperial") {
+            weight = value.weight.imperial;
+          }
+          htmlcontent += "<p>" + weight + "</p>";
+        });
+        htmlcontent += "<p>*******</p>";
+        elementOfdv.innerHTML = htmlcontent;
+      }
+
+      function getAllcat(data) {
+        var catsCount = Object.values(data).length;
+        var htmlcontent =
+          "<p>All Names(total=" + catsCount + '):<br><hr class="healthclass">';
+        Object.values(data).forEach((value) => {
+          ourCatName = value.name;
+          htmlcontent += "<p>" + ourCatName + "</p>";
+        });
+        elementOfdv.innerHTML = htmlcontent;
+      }
+
+      function intelligenceFriendly(data) {
+        var htmlcontent = '<p> I--F</p><hr class="healthclass">';
+
+        Object.values(data).forEach((value) => {
+          intelligence = value.intelligence;
+          childFriendly = value.child_friendly;
+          htmlcontent += "<p>" + intelligence + "." + childFriendly + "</p>";
+        });
+        htmlcontent += "<p>*******</p>";
+
+        elementOfdv.innerHTML = htmlcontent;
+      }
+      function averageIntelligence(data) {
+        total_cat = 0;
+        total_intelegeince = 0;
+
+        Object.values(data).forEach((value) => {
+          intelligence = value.intelligence;
+          name = value.name;
+          total_intelegeince += intelligence;
+          total_cat++;
+        });
+
+        let number = total_intelegeince / total_cat;
+        fixed_number = Number(number.toFixed(2));
+
+        var htmlcontent =
+          "<p>Average Intelligence: " +
+          fixed_number +
+          '</p><hr class="healthclass">';
+        elementOfdv.innerHTML = htmlcontent;
+      }
+
+      function averageIntelligenceForChildFriendly(data) {
+        total_cat = 0;
+        total_intelegeince = 0;
+
+        Object.values(data).forEach((value) => {
+          if (value.child_friendly == 4) {
+            total_intelegeince += value.intelligence;
+            total_cat++;
+          }
+        });
+
+        let number = total_intelegeince / total_cat;
+        fixed_number = Number(number.toFixed(2));
+
+        var htmlcontent =
+          "<p>Average Intelligence: " +
+          fixed_number +
+          '</p><hr class="healthclass">';
+        elementOfdv.innerHTML = htmlcontent;
+      }
+    </script>
+  </body>
+</html>
